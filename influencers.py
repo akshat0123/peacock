@@ -1,1 +1,1 @@
-influencers = []
+influencers = ['']
