@@ -20,7 +20,7 @@ Twitter popularity gaining agent
 2. Fill in list of initial influencers by twitter username in 'influencers.py'
 
 	```
-	influencers = ['[username]', '[username 2]', '[username 3']]
+	influencers = ['[username]', '[username 2]', '[username 3]']
 	```
 
 3. Run with `python3 main.py`
