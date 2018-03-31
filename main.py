@@ -6,7 +6,7 @@ def main():
 
     peacock = Peacock(influencers, credentials)
 
-    tweets = peacock.test('UVA', 1)
+    tweets = peacock.test('UVA', 10)
     for tweet in tweets: print(tweet)
 
 if __name__ == '__main__':
