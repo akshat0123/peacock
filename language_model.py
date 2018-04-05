@@ -47,7 +47,7 @@ class LanguageModel:
         return inv_probs, total_prob
 
 
-    def generate_word(inv_probs, total_prob):
+    def produce_word_from_inv_prob_dict(inv_probs, total_prob):
         """ Takes in a dictionary with probability ranges mapped to
             corresponding terms and the total probability in the dictionary and
             returns a token based on its probability of being generated
@@ -58,6 +58,17 @@ class LanguageModel:
         return token 
 
 
+    def generate_word(self, freqs):
+        """ Takes in a frequency dictionary and returns a word depending on its
+            probability of being generated using the given frequency dictionary
+        """
+        prob_dict = self.generate_probability_dict(freqs)
+        inv_probs, total_prob = self.generate_inv_probability_dict(prob_dict)
+        word = produce_word_from_inv_prob_dict(inv_probs, total_prob)
+
+        return word
+
+
     def generate_tweet(self, count):
         """ Generates tweet based on language model
             length of tweet is determined by the count parameter
@@ -65,20 +76,33 @@ class LanguageModel:
         tweet = []
 
         # First word
-        prob_dict = self.generate_probability_dict(self.unigram_freqs)
-        inv_probs, total_prob = self.generate_inv_probability_dict(prob_dict)
-        tweet += generate_word(inv_probs, total_prob)
+        tweet += generate_word(self.unigram_freqs)
 
         # Second word
-        prob_dict = self.generate_probability_dict(self.bigram_freqs[tweet[0]])
-        inv_probs, total_prob = self.generate_inv_probability_dict(prob_dict)
-        tweet += generate_word(inv_probs, total_prob)
+        # If first word has corresponding bigrams generate word using bigram probability
+        if tweet[0] in self.bigram_freqs:
+            tweet += generate_word(self.bigram_freqs[tweet[0]])
+
+        # Else use unigram probability
+        else:
+            tweet += generate_word(self.unigram_freqs)
 
         # Remaining words
         for i in range(2, count):
-            prob_dict = self.generate_probability_dict(self.trigram_freqs[tweet[i-2]][tweet[i-1]])
-            inv_probs, total_prob = self.generate_inv_probability_dict(prob_dict)
-            tweet += generate_word(inv_probs, total_prob)
+
+            # If tweets t_i-2 and t_i-2 have corresponding trigrams generate
+            # word using trigram probability
+            if tweet[i-2] in self.trigram_freqs and tweet[i-1] in self.trigram_freqs[tweet[i-2]]:
+                tweet += generate_word(self.trigram_freqs[tweet[i-2]][tweet[i-1]])
+
+            # Else if tweet t_i-1 has corresponding bigrams generate word using
+            # bigram probability
+            elif tweet[i-1] in self.bigram_freqs:
+                tweet += generate_word(self.bigram_freqs[tweet[i-1]])
+
+            # Else use unigram probability
+            else:
+                tweet += genereate_word(self.unigram_freqs)
 
         return ' '.join(tweet)
 
