@@ -24,7 +24,7 @@ class Peacock:
             specified by 'count' from the specified user
         """
 
-        return self.api.user_timeline(screen_name=user, count=count)
+        return self.api.user_timeline(screen_name=user, count=count, tweet_mode='extended')
 
 
     def generate_corpus(self, count):
