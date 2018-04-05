@@ -55,6 +55,7 @@ class LanguageModel:
         random_key_init = uniform(0, total_prob)
         random_key = min(inv_probs.items(), key=lambda x: abs(random_key_init - x[0]))[0]
         token = inv_probs[random_key]
+
         return token 
 
 
@@ -75,10 +76,10 @@ class LanguageModel:
         """
         tweet = []
 
-        # First word
+        # First word #
         tweet += generate_word(self.unigram_freqs)
 
-        # Second word
+        # Second word #
         # If first word has corresponding bigrams generate word using bigram probability
         if tweet[0] in self.bigram_freqs:
             tweet += generate_word(self.bigram_freqs[tweet[0]])
@@ -87,7 +88,7 @@ class LanguageModel:
         else:
             tweet += generate_word(self.unigram_freqs)
 
-        # Remaining words
+        # Remaining words #
         for i in range(2, count):
 
             # If tweets t_i-2 and t_i-2 have corresponding trigrams generate
