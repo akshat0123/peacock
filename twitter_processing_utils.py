@@ -7,9 +7,8 @@ def process_tweet(raw):
 
 	# 2. removing the RT
 	# rm_RT = if this tweet contains RT then remove the whole tweet
-
+	
 	# 3. remove the @ # ??
 	letters_only = re.sub("[^a-zA-Z]"," ",rm_RT)
 	# 4. Find out how the picture
 	# 5. emoji
-	pass
