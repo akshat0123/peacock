@@ -1,4 +1,9 @@
 from random import uniform
+import nltk
+from stopList import *
+from nltk.stem.snowball import EnglishStemmer
+from nltk.tokenize import RegexpTokenizer
+import re
 
 
 class LanguageModel:
@@ -6,15 +11,94 @@ class LanguageModel:
     def __init__(self):
         """ Initializes language model
         """
+        
+        self.tokenizer = nltk.tokenize.treebank.TreebankWordTokenizer()
+        self.stemmer = EnglishStemmer()
+        
+
         self.trigram_freqs = {}
         self.bigram_freqs = {}
         self.unigram_freqs = {}
+        pass
 
    
+    def word_freq(token, nGram):
+        """ calculate the tokne frequency
+        """
+        if token in nGram:
+            nGram[token] += 1
+        else:
+            nGram[token] = 1
+            
+        return nGram
+    
+    
+    def generate_tokens(self, wordLst):
+        """ generate tokens of each tweet
+        """
+        tokenizer = self.tokenizer
+        stemmer = self.stemmer
+        tokens = tokenizer.tokenize(wordLst)
+        tknsLower = [tkn.lower() for tkn in tokens]
+        tknsPunc = [re.sub(r'[^\w\s]','',tkn) for tkn in tknsLower]
+        #tknStm = [stemmer.stem(tkn) for tkn in tknsPunc]
+        nTkns = [tkn for tkn in tknsPunc if tkn not in stopList and len(tkn) > 2]
+        nTkns = list(nTkns)
+        
+        return nTkns
+        
+        
+    def generate_unigram(self, text):
+        """ generate bigram
+        """
+        unigramFrq = {}
+        for tweet in text:
+            nTkns = generate_tokens(tweet)
+            unigramFrq = word_freq(nTkn,unigramFrq)
+        
+        return unigramFrq
+        
+
+    def generate_bigram(self, text):
+        """ generate bigram
+        """
+        bigramFrq = {}
+        bigram = []
+        for tweet in text:
+            nTkns = generate_tokens(tweet)
+            for i in range(len(nTkns)-1):
+                bigram.append(nTkns[i] + ',' + nTkns[i+1])
+        
+        for i in range(len(bigram)):
+            biTkn = bigram[i]
+            bigramFrq = word_freq(biTkn,bigramFrq)
+                 
+        return bigramFrq
+        
+    
+    def generate_trigram(self, text):
+        """ generate trigram
+        """
+        trigramFrq = {}
+        trigram = []
+        for tweet in text:
+            nTkns = generate_tokens(tweet)
+            for i in range(len(nTkns)-2):
+                trigram.append(nTkns[i] + ',' + nTkns[i+1] + ',' + nTkns[i+2])
+        
+        for i in range(len(trigram)):
+            triTkn = trigram[i]
+            trigramFrq = word_freq(triTkn,trigramFrq)
+            
+        return trigramFrq
+        
+
     def add_document(self, text):
         """ Takes in a document as a string and adds it to the model
         """
-        pass
+        self.unigram_freqs = generate_unigram(self,text)        
+        self.bigram_freqs = generate_bigram(self,text)
+        self.trigram_freqs = generate_trigram(self,text)
 
     
     def generate_probability_dict(self, freqs):
