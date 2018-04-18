@@ -19,16 +19,41 @@ class LanguageModel:
         self.trigram_freqs = {}
         self.bigram_freqs = {}
         self.unigram_freqs = {}
-        pass
-
-   
-    def word_freq(token, nGram):
+    
+    def word_freq_bi(self,tokens, nGram):
         """ calculate the tokne frequency
         """
-        if token in nGram:
-            nGram[token] += 1
-        else:
-            nGram[token] = 1
+        for key in tokens.keys():
+            if key in nGram:
+                tknKy = nGram[key].keys()
+                nGram[key][tknKy] += 1 
+            else:
+                nGram[key]= dict({tokens[key]:1})
+            
+        return nGram
+
+    def word_freq_tri(self,tokens, nGram):
+        """ calculate the tokne frequency
+        """
+        for key in tokens.keys():
+            for key2 in tokens[key].keys():
+                if key2 in nGram:
+                    tknKy = nGram[key2].keys()
+                    nGram[key][key2][tknKy] += 1 
+                else:
+                    nGram[key]= dict({key2:dict({tokens[key][key2]:1})})
+            
+        return nGram
+
+   
+    def word_freq(self,tokens, nGram):
+        """ calculate the tokne frequency
+        """
+        for token in tokens:
+            if token in nGram:
+                nGram[token] += 1
+            else:
+                nGram[token] = 1
             
         return nGram
     
@@ -53,8 +78,8 @@ class LanguageModel:
         """
         unigramFrq = {}
         for tweet in text:
-            nTkns = generate_tokens(tweet)
-            unigramFrq = word_freq(nTkn,unigramFrq)
+            nTkns = self.generate_tokens(tweet)
+            unigramFrq = self.word_freq(nTkns,unigramFrq)
         
         return unigramFrq
         
@@ -63,43 +88,42 @@ class LanguageModel:
         """ generate bigram
         """
         bigramFrq = {}
-        bigram = []
+        bigram = {}
         for tweet in text:
-            nTkns = generate_tokens(tweet)
+            nTkns = self.generate_tokens(tweet)
             for i in range(len(nTkns)-1):
-                bigram.append(nTkns[i] + ',' + nTkns[i+1])
+                bigram[nTkns[i]]= nTkns[i+1]
+                
+        bigramFrq = self.word_freq_bi(bigram,bigramFrq)
         
-        for i in range(len(bigram)):
-            biTkn = bigram[i]
-            bigramFrq = word_freq(biTkn,bigramFrq)
-                 
         return bigramFrq
+
+    
         
     
     def generate_trigram(self, text):
         """ generate trigram
         """
         trigramFrq = {}
-        trigram = []
-        for tweet in text:
-            nTkns = generate_tokens(tweet)
-            for i in range(len(nTkns)-2):
-                trigram.append(nTkns[i] + ',' + nTkns[i+1] + ',' + nTkns[i+2])
+        trigram = {}
         
-        for i in range(len(trigram)):
-            triTkn = trigram[i]
-            trigramFrq = word_freq(triTkn,trigramFrq)
-            
-        return trigramFrq
+        for tweet in text:
+            nTkns = self.generate_tokens(tweet)
+            for i in range(len(nTkns)-2):
+                trigram[nTkns[i]] = dict({nTkns[i+1]:nTkns[i+2]})
+        
+        trigramFrq = self.word_freq_tri(trigram,trigramFrq)
+        return trigram   
+#        return trigramFrq
         
 
     def add_document(self, text):
         """ Takes in a document as a string and adds it to the model
         """
-        self.unigram_freqs = generate_unigram(self,text)        
-        self.bigram_freqs = generate_bigram(self,text)
-        self.trigram_freqs = generate_trigram(self,text)
-
+        self.unigram_freqs = self.generate_unigram(text)        
+        self.bigram_freqs = self.generate_bigram(text)
+        self.trigram_freqs = self.generate_trigram(text)
+        return self.unigram_freqs, self.bigram_freqs, self.trigram_freqs
     
     def generate_probability_dict(self, freqs):
         """ Takes in a frequency dictionary and returns a dictionary with each
@@ -116,7 +140,7 @@ class LanguageModel:
         return prob_dict
 
 
-    def generate_inv_probability_dict(prob_dict):
+    def generate_inv_probability_dict(self,prob_dict):
         """ Takes in a dictionary of terms and their corresponding probabilities and
             returns a dictionary with keys in the interval between 0 and the total
             probability with corresponding terms as values, as well as the total
@@ -126,12 +150,12 @@ class LanguageModel:
 
         for word in prob_dict:
             total_prob += prob_dict[word]
-            inv_probs[prob_sum] = word
+            inv_probs[total_prob] = word
 
         return inv_probs, total_prob
 
 
-    def produce_word_from_inv_prob_dict(inv_probs, total_prob):
+    def produce_word_from_inv_prob_dict(self,inv_probs, total_prob):
         """ Takes in a dictionary with probability ranges mapped to
             corresponding terms and the total probability in the dictionary and
             returns a token based on its probability of being generated
@@ -149,7 +173,7 @@ class LanguageModel:
         """
         prob_dict = self.generate_probability_dict(freqs)
         inv_probs, total_prob = self.generate_inv_probability_dict(prob_dict)
-        word = produce_word_from_inv_prob_dict(inv_probs, total_prob)
+        word = self.produce_word_from_inv_prob_dict(inv_probs, total_prob)
 
         return word
 
@@ -161,16 +185,16 @@ class LanguageModel:
         tweet = []
 
         # First word #
-        tweet += generate_word(self.unigram_freqs)
+        tweet.append(self.generate_word(self.unigram_freqs))
 
         # Second word #
         # If first word has corresponding bigrams generate word using bigram probability
         if tweet[0] in self.bigram_freqs:
-            tweet += generate_word(self.bigram_freqs[tweet[0]])
+            tweet.append(self.generate_word(self.bigram_freqs[tweet[0]]))
 
         # Else use unigram probability
         else:
-            tweet += generate_word(self.unigram_freqs)
+            tweet.append(self.generate_word(self.unigram_freqs))
 
         # Remaining words #
         for i in range(2, count):
@@ -178,16 +202,16 @@ class LanguageModel:
             # If tweets t_i-2 and t_i-2 have corresponding trigrams generate
             # word using trigram probability
             if tweet[i-2] in self.trigram_freqs and tweet[i-1] in self.trigram_freqs[tweet[i-2]]:
-                tweet += generate_word(self.trigram_freqs[tweet[i-2]][tweet[i-1]])
+                tweet.append(self.generate_word(self.trigram_freqs[tweet[i-2]][tweet[i-1]]))
 
             # Else if tweet t_i-1 has corresponding bigrams generate word using
             # bigram probability
             elif tweet[i-1] in self.bigram_freqs:
-                tweet += generate_word(self.bigram_freqs[tweet[i-1]])
+                tweet.append(self.generate_word(self.bigram_freqs[tweet[i-1]]))
 
             # Else use unigram probability
             else:
-                tweet += genereate_word(self.unigram_freqs)
+                tweet.append(self.generate_word(self.unigram_freqs))
 
         return ' '.join(tweet)
 
