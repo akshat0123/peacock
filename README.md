@@ -17,7 +17,7 @@ Twitter popularity gaining agent
 	}
 	```
 
-2. Fill in list of initial influencers by twitter username in 'influencers.py'
+2. Fill in list of initial influencers by twitter username in 'influencers.py' [Or select at random from bank of influencers]
 
 	```
 	influencers = ['[username]', '[username 2]', '[username 3]']
