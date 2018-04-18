@@ -10,8 +10,6 @@ def main():
         print('Influencer: %s' % (influencer))
         tweets = peacock.get_tweets(influencer, 100)
         for tweet in tweets:
-            print('\tTweet: %s' % (tweet.full_text[:300]))
-            print('\tTweet: %s' % (tweet.full_text))
-
+            print('\tTweet: %s' % (tweet))
 if __name__ == '__main__':
     main()
