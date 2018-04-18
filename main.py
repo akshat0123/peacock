@@ -1,3 +1,4 @@
+from influencers import Influencers
 from peacock import Peacock
 from credentials import *
 from language_model import LanguageModel
