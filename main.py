@@ -29,11 +29,20 @@ def main():
         print('Influencer: %s' % (influencer))
         tweets = peacock.get_tweets(influencer, 100)
         for tweet in tweets:
+<<<<<<< HEAD
             print('\tTweet: %s' % (tweet.full_text[:300]))
             print('\tTweet: %s' % (tweet.full_text))
+=======
+<<<<<<< HEAD
+            print('\tTweet: %s' % (tweet))
+=======
+            #print('\tTweet: %s' % (tweet.full_text[:300]))
+            #print('\tTweet: %s' % (tweet.full_text))
+>>>>>>> origin/master
             
             
 
     print(prob_dict)
+>>>>>>> 5e662f16ec0b2546270027fd495d0f83c3814f6a
 if __name__ == '__main__':
     main()
