@@ -1,5 +1,4 @@
 from peacock import Peacock
-from influencers import Influencers
 from credentials import *
 
 import nltk
