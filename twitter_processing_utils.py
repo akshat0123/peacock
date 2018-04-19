@@ -14,7 +14,7 @@ def process_tweet(raw):
                                "]+", flags=re.UNICODE)
     raw = emoji_pattern.sub(r'',raw)
     # 3. remove the @ # ??
-    raw = re.sub("[^a-zA-Z]","",raw)
+    # raw = re.sub("[^a-zA-Z]"," ",raw)
 
     # 3. removing the RT
     # rm_RT = if this tweet contains RT then remove the whole tweet
@@ -26,6 +26,7 @@ def process_tweet(raw):
 
 def getFavoriteCount(tweepyObject):
     return tweepyObject.favorite_count
+
 
 def getNumFollowers(tweepyObject):
     return tweepyObject.follower_count

@@ -11,15 +11,13 @@ class LanguageModel:
     def __init__(self):
         """ Initializes language model
         """
-        
         self.tokenizer = nltk.tokenize.treebank.TreebankWordTokenizer()
         self.stemmer = EnglishStemmer()
-        
-
         self.trigram_freqs = {}
         self.bigram_freqs = {}
         self.unigram_freqs = {}
     
+
     def word_freq_bi(self,tokens, nGram):
         """ calculate the tokne frequency
         """
@@ -32,17 +30,26 @@ class LanguageModel:
             
         return nGram
 
+
     def word_freq_tri(self,tokens, nGram):
         """ calculate the tokne frequency
         """
         for key in tokens.keys():
-            for key2 in tokens[key].keys():
-                if key2 in nGram:
-                    tknKy = nGram[key2].keys()
-                    nGram[key][key2][tknKy] += 1 
-                else:
+            if key in nGram:
+                for key2 in tokens[key].keys():
+                    if key2 in nGram[key]:
+                        tknKy = nGram[key2].keys()
+                        if tknKy in nGram[key][key2]:
+                            nGram[key][key2][tknKy] += 1 
+                        else:
+                            nGram[key][key2][tknKy] = 1 
+                    else:
+                        nGram[key]= dict({key2:dict({tokens[key][key2]:1})})
+
+            else:
+                for key2 in tokens[key].keys():
                     nGram[key]= dict({key2:dict({tokens[key][key2]:1})})
-            
+                    
         return nGram
 
    
@@ -99,8 +106,6 @@ class LanguageModel:
         return bigramFrq
 
     
-        
-    
     def generate_trigram(self, text):
         """ generate trigram
         """
@@ -113,8 +118,7 @@ class LanguageModel:
                 trigram[nTkns[i]] = dict({nTkns[i+1]:nTkns[i+2]})
         
         trigramFrq = self.word_freq_tri(trigram,trigramFrq)
-        return trigram   
-#        return trigramFrq
+        return trigramFrq
         
 
     def add_document(self, text):
@@ -123,8 +127,8 @@ class LanguageModel:
         self.unigram_freqs = self.generate_unigram(text)        
         self.bigram_freqs = self.generate_bigram(text)
         self.trigram_freqs = self.generate_trigram(text)
-        return self.unigram_freqs, self.bigram_freqs, self.trigram_freqs
-    
+
+
     def generate_probability_dict(self, freqs):
         """ Takes in a frequency dictionary and returns a dictionary with each
             of the possible words and their probability of occurrence 
