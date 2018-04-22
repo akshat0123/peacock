@@ -8,6 +8,7 @@ import re
 
 class LanguageModel:
 
+
     def __init__(self):
         """ Initializes language model
         """
@@ -16,6 +17,9 @@ class LanguageModel:
         self.trigram_freqs = {}
         self.bigram_freqs = {}
         self.unigram_freqs = {}
+        self.total_unigram_freqs = {}
+        self.total_bigram_freqs = {}
+        self.total_trigram_freqs = {}
     
 
     def word_freq_bi(self,tokens, nGram):
@@ -88,7 +92,11 @@ class LanguageModel:
             nTkns = self.generate_tokens(tweet)
             unigramFrq = self.word_freq(nTkns,unigramFrq)
         
-        return unigramFrq
+        total_unigramFrq = 0
+        for word in unigramFrq:
+            total_unigramFrq += unigramFrq[word]
+
+        return unigramFrq, total_unigramFrq
         
 
     def generate_bigram(self, text):
@@ -102,8 +110,14 @@ class LanguageModel:
                 bigram[nTkns[i]]= nTkns[i+1]
                 
         bigramFrq = self.word_freq_bi(bigram,bigramFrq)
+
+        total_bigramFrq = { first: 0 for first in bigramFrq }
+
+        for first in bigramFrq:
+            for second in bigramFrq[first]:
+                total_bigramFrq[first] += bigramFrq[first][second]
         
-        return bigramFrq
+        return bigramFrq, total_bigramFrq
 
     
     def generate_trigram(self, text):
@@ -118,15 +132,31 @@ class LanguageModel:
                 trigram[nTkns[i]] = dict({nTkns[i+1]:nTkns[i+2]})
         
         trigramFrq = self.word_freq_tri(trigram,trigramFrq)
-        return trigramFrq
+
+        total_trigramFrq = { first: { second: 0 for second in trigramFrq[first] } for first in trigramFrq }
+
+        for first in trigramFrq:
+            for second in trigramFrq[first]:
+                for third in trigramFrq[first][second]:
+                    total_trigramFrq[first][second] += trigramFrq[first][second][third]
+
+        return trigramFrq, total_trigramFrq
         
 
-    def add_document(self, text):
-        """ Takes in a document as a string and adds it to the model
+    def add_documents(self, text):
+        """ Takes in a list of documents as strings and adds it to the model
         """
-        self.unigram_freqs = self.generate_unigram(text)        
-        self.bigram_freqs = self.generate_bigram(text)
-        self.trigram_freqs = self.generate_trigram(text)
+        unigram_freqs, total_unigram_freqs = self.generate_unigram(text)        
+        self.unigram_freqs = unigram_freqs
+        self.total_unigram_freqs = total_unigram_freqs
+
+        bigram_freqs, total_bigram_freqs = self.generate_bigram(text)
+        self.bigram_freqs = bigram_freqs
+        self.total_bigram_freqs = total_bigram_freqs
+
+        trigram_freqs, total_trigram_freqs = self.generate_trigram(text)
+        self.trigram_freqs = trigram_freqs
+        self.total_trigram_freqs = total_trigram_freqs
 
 
     def generate_probability_dict(self, freqs):

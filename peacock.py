@@ -1,4 +1,5 @@
 from language_model import LanguageModel
+from tqdm import tqdm
 import tweepy
 import random
 
@@ -20,6 +21,26 @@ class Peacock:
         self.influencers = influencers
         self.complete_model = None
         self.influencer_models = None
+
+
+    def learn_models(self, count):
+        """ Takes in a count of tweets to learn from for each influencer and
+            fills the complete language model and the influencer language models
+            with the corresponding tweets
+        """
+
+        influencers = self.influencers.infGroup
+
+        self.complete_model = LanguageModel()
+        self.influencer_models = { influencer: LanguageModel() for influencer in influencers }
+
+        all_tweets = []
+        for influencer in tqdm(influencers, desc='Learning Models'):
+            tweets = [tweet.full_text for tweet in self.get_tweets(influencer, count)]
+            self.influencer_models[influencer].add_documents(tweets)
+            all_tweets += tweets
+
+        self.complete_model.add_documents(all_tweets)
 
 
     def get_tweets(self, user, count):
