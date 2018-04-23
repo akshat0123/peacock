@@ -2,7 +2,7 @@ from language_model import LanguageModel
 from tqdm import tqdm
 import tweepy
 import random
-
+from twitter_processing_utils import *
 class Peacock:
 
 
@@ -47,8 +47,11 @@ class Peacock:
         """ Takes in a twitter user and a count and returns the number of tweets
             specified by 'count' from the specified user
         """
+        topTweetsList = self.api.user_timeline(screen_name=user, count=count, tweet_mode='extended')
+        nonRetweets = [getNonRetweet(x) for x in topTweetsList]
+        clearRetweets = [processTweet(x) for x in nonRetweets]
 
-        return self.api.user_timeline(screen_name=user, count=count, tweet_mode='extended')
+        return clearRetweets
 
 
     def publish_tweet(self, tweet):
