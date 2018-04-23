@@ -37,7 +37,7 @@ class Peacock:
 
         all_tweets = []
         for influencer in tqdm(influencers, desc='Learning Models'):
-            tweets = [tweet.full_text for tweet in self.get_tweets(influencer, count)]
+            tweets = [tweet for tweet in self.get_tweets(influencer, count)]
             self.influencer_models[influencer].add_documents(tweets)
             all_tweets += tweets
 

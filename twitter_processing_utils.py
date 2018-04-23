@@ -4,7 +4,7 @@ def processTweet(tweepyStatusObject):
     """ Takes in raw tweet text and returns cleaned text
     """
     # 1. replace the url with single space
-    raw = tweepyStatusObject._json['text']
+    raw = tweepyStatusObject._json['full_text']
     raw = re.sub('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'," ",raw)
     # 2. emoji
     emoji_pattern = re.compile("["
@@ -22,7 +22,7 @@ def processTweet(tweepyStatusObject):
 # rm_RT = if this tweet contains RT then remove the whole tweet
 
 def getNonRetweet(tweepyStatusObject):
-    raw = tweepyStatusObject._json['text']
+    raw = tweepyStatusObject._json['full_text']
 
     if "RT" in raw:
         return ""

@@ -1,5 +1,6 @@
 from nltk.stem.snowball import EnglishStemmer
 from nltk.tokenize import RegexpTokenizer
+from feature_space import FeatureSpace
 from random import uniform
 from stopList import *
 import numpy as np
@@ -17,9 +18,10 @@ class LanguageModel:
         self.trigram_freqs = {}
         self.bigram_freqs = {}
         self.unigram_freqs = {}
-        self.total_unigram_freqs = {}
+        self.total_unigram_freqs = 0 
         self.total_bigram_freqs = {}
         self.total_trigram_freqs = {}
+        self.feature_space = None
     
 
     def word_freq_bi(self,tokens, nGram):
@@ -209,6 +211,8 @@ class LanguageModel:
         self.trigram_freqs = trigram_freqs
         self.total_trigram_freqs = total_trigram_freqs
 
+        self.feature_space = FeatureSpace(self)
+
 
     def generate_probability_dict(self, freqs):
         """ Takes in a frequency dictionary and returns a dictionary with each
@@ -307,15 +311,29 @@ class LanguageModel:
         """
         # Get probability of first word being generated
         first = tweet[0]
-        prob = np.log(self.get_unigram_prob(first))
+        unigram_prob = self.get_unigram_prob(first)
+        prob = np.log(unigram_prob) if unigram_prob != 0 else 0
 
         # Get probability of first bigram being generated
         second = tweet[1]
-        prob += np.log(self.get_bigram_prob(first, second)
+        bigram_prob = self.get_bigram_prob(first, second)
+        prob += np.log(bigram_prob) if bigram_prob != 0 else 0
 
         # Get probability of all trigrams
         for i in range(2, len(tweet)):
             first, second, third = tweet[i-2], tweet[i-1], tweet[i]
-            prob += np.log(self.get_trigram_prob(first, second, third)
+            trigram_prob = self.get_trigram_prob(first, second, third)
+            prob += np.log(trigram_prob) if trigram_prob != 0 else 0
 
         return prob
+
+
+    def calculate_similarity(self, tweet1, tweet2):
+        """ Takes in two tweets as lists of tokens and returns their cosine
+            similarity 
+        """
+        vector1 = self.feature_space.tf_vector(tweet1)
+        vector2 = self.feature_space.tf_vector(tweet2)
+        similarity = self.feature_space.cosine_similarity(vector1, vector2)
+
+        return similarity 
