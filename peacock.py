@@ -1,8 +1,9 @@
 from language_model import LanguageModel
-from tqdm import tqdm
-import tweepy
-import random
 from twitter_processing_utils import *
+from tqdm import tqdm
+import tweepy, random
+
+
 class Peacock:
 
 
@@ -51,7 +52,7 @@ class Peacock:
         nonRetweets = [getNonRetweet(x) for x in topTweetsList]
         clearRetweets = [processTweet(x) for x in nonRetweets]
 
-        return clearRetweets
+        return clearRetweets 
 
 
     def publish_tweet(self, tweet):
