@@ -1,9 +1,9 @@
 import re
-
-def process_tweet(raw):
+def process_tweet(tweepyStatusObject):
     """ Takes in raw tweet text and returns cleaned text
     """
     # 1. replace the url with single space
+    raw = tweepyStatusObject._json['text']
     raw = re.sub('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'," ",raw)
     # 2. emoji
     emoji_pattern = re.compile("["
@@ -14,7 +14,7 @@ def process_tweet(raw):
                                "]+", flags=re.UNICODE)
     raw = emoji_pattern.sub(r'',raw)
     # 3. remove the @ # ??
-    # raw = re.sub("[^a-zA-Z]"," ",raw)
+    raw = re.sub("[^a-zA-Z]","",raw)
 
     # 3. removing the RT
     # rm_RT = if this tweet contains RT then remove the whole tweet
@@ -24,13 +24,11 @@ def process_tweet(raw):
     else:
         return raw 
 
-def getFavoriteCount(tweepyObject):
-    return tweepyObject.favorite_count
+def getFavoriteCount(tweepyStatusObject):
+    return tweepyStatusObject._json['favorite_count']
 
+def getNumFollowers(tweepyStatusObject):
+    return tweepyStatusObject._json['user']['followers_count']
 
-def getNumFollowers(tweepyObject):
-    return tweepyObject.follower_count
-
-
-def getNumFoward(tweepyObject):
-    return tweepyObject.forward_count
+def getNumRetweet(tweepyStatusObject):
+    return tweepyStatusObject._json['retweet_count']
