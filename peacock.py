@@ -52,7 +52,7 @@ class Peacock:
         nonRetweets = [getNonRetweet(x) for x in topTweetsList]
         clearRetweets = [processTweet(x) for x in nonRetweets]
 
-        return clearRetweets 
+        return clearRetweets
 
 
     def publish_tweet(self, tweet):

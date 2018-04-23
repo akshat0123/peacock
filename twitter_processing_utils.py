@@ -4,7 +4,7 @@ def processTweet(tweepyStatusObject):
     """ Takes in raw tweet text and returns cleaned text
     """
     # 1. replace the url with single space
-    raw = tweepyStatusObject._json['full_text']
+    raw = tweepyStatusObject
     raw = re.sub('https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'," ",raw)
     # 2. emoji
     emoji_pattern = re.compile("["
@@ -15,7 +15,7 @@ def processTweet(tweepyStatusObject):
                                "]+", flags=re.UNICODE)
     raw = emoji_pattern.sub(r'',raw)
     # 3. remove the @ # ??
-    raw = re.sub("[^a-zA-Z]","",raw)
+    raw = re.sub("[^a-zA-Z]"," ",raw)
     return raw 
 
 # Removing the RT
