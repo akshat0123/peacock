@@ -1,5 +1,5 @@
 import re
-def process_tweet(tweepyStatusObject):
+def processTweet(tweepyStatusObject):
     """ Takes in raw tweet text and returns cleaned text
     """
     # 1. replace the url with single space
@@ -15,9 +15,13 @@ def process_tweet(tweepyStatusObject):
     raw = emoji_pattern.sub(r'',raw)
     # 3. remove the @ # ??
     raw = re.sub("[^a-zA-Z]","",raw)
+    return raw 
 
-    # 3. removing the RT
-    # rm_RT = if this tweet contains RT then remove the whole tweet
+# 3. removing the RT
+# rm_RT = if this tweet contains RT then remove the whole tweet
+
+def isRetweet(tweepyStatusObject):
+    raw = tweepyStatusObject._json['text']
 
     if "RT" in raw:
         return ""
