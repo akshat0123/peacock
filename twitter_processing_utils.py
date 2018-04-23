@@ -1,4 +1,5 @@
 import re
+
 def processTweet(tweepyStatusObject):
     """ Takes in raw tweet text and returns cleaned text
     """
@@ -17,10 +18,10 @@ def processTweet(tweepyStatusObject):
     raw = re.sub("[^a-zA-Z]","",raw)
     return raw 
 
-# 3. removing the RT
+# Removing the RT
 # rm_RT = if this tweet contains RT then remove the whole tweet
 
-def isRetweet(tweepyStatusObject):
+def getNonRetweet(tweepyStatusObject):
     raw = tweepyStatusObject._json['text']
 
     if "RT" in raw:
