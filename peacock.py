@@ -172,3 +172,22 @@ class Peacock:
         print("\n===============================================================\n")
         print("The performance of influencer is updated based on the generated tweet\n")
         print(self.influencers.infPerformance)
+        
+    
+    def update_influencers(self, influencers, noInfluencer, epsilon):
+        self.influencers.allInfluencers
+        infPerformance = self.influencers.infPerformance
+        tmp = {key: rank for rank, key in enumerate(sorted(set(infPerformance.values()), reverse=True), 1)}
+        rankInfluencer = {k: tmp[v] for k,v in infPerformance.items()}
+        
+        noInf = len(rankInfluencer)
+        slcInfluencer = []
+        if random.random() < epsilon:
+            slcInfluencer = random.sample(range(1, noInf-1),noInfluencer)
+            
+        else: 
+            slcInfluencer = [a for a in dict(sorted(rankInfluencer.items(), key=operator.itemgetter(1))[:noInfluencer]).keys()]
+        
+        print('test')
+               
+           
