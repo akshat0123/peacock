@@ -22,7 +22,10 @@ class LanguageModel:
         self.total_bigram_freqs = {}
         self.total_trigram_freqs = {}
         self.feature_space = None
-    
+        self.gnTweet = None
+        self.gnTweeLikes = 0
+        self.gnTweeRT = 0
+
 
     def word_freq_bi(self,tokens, nGram):
         """ calculate the tokne frequency
@@ -302,6 +305,7 @@ class LanguageModel:
             else:
                 tweet.append(self.generate_word(self.unigram_freqs))
 
+        self.gnTweet = ' '.join(tweet)
         return ' '.join(tweet)
 
 
@@ -337,3 +341,11 @@ class LanguageModel:
         similarity = self.feature_space.cosine_similarity(vector1, vector2)
 
         return similarity 
+
+    def assign_like_RT_to_generatedTweet(self, likes, RTs):
+        """ Assign number of likes and RT to the generated tweets based on 
+            top similar tweets of each influencers
+        """
+        self.gnTweeLikes = np.mean(likes)
+        self.gnTweeRT = np.mean(RTs)
+        

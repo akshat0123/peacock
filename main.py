@@ -1,5 +1,6 @@
 from influencers import Influencers
 from peacock import Peacock
+import numpy as np
 from credentials import *
 from tqdm import tqdm
 
@@ -9,28 +10,14 @@ def main():
     influencer = Influencers()
 
     peacock = Peacock(influencer, credentials)
-    peacock.learn_models(2)
-    gen_tweet = peacock.complete_model.generate_tweet(6)
+    peacock.learn_models(5)
+    gen_tweet = peacock.complete_model.generate_tweet(10)
     gen_tweet_tokens = peacock.complete_model.generate_tokens(gen_tweet)
 
     influencers = peacock.influencers.infGroup
-    similarities = { influencer: [] for influencer in influencers }
-    for influencer in tqdm(influencers, desc='Calculating Similarities:'):
-        tweets = [tweet for tweet in peacock.get_tweets(influencer, 10)]
-        for tweet in tweets:
-            tweet_tokens = peacock.complete_model.generate_tokens(tweet)
-            sim = peacock.complete_model.calculate_similarity(gen_tweet_tokens, tweet_tokens)
-            similarities[influencer].append((tweet, sim))
+    leastPopInfluencer = peacock.rank_influencer_tweets_by_similarity(influencers, 5, 1, gen_tweet_tokens)
+    peacock.update_influencers_performance(influencers)
 
-    print('\nPeacock Generated Tweet: %s\n' % (gen_tweet))
-
-    similarities = { influencer: sorted(similarities[influencer], key=lambda x:x[1], reverse=True) for influencer in similarities }
-    for influencer in similarities:
-        print('\nInfluencer: %s\n' % (influencer))
-        for sim in similarities[influencer]:
-            tweet, val = sim[0], sim[1]
-            print('Tweet: %s\tValue: %s' % (tweet, val))
-      
 
 if __name__ == '__main__':
     main()
