@@ -2,6 +2,7 @@ from language_model import LanguageModel
 from twitter_processing_utils import *
 from tqdm import tqdm
 import tweepy, random, operator
+from operator import itemgetter 
 import numpy as np
 
 class Peacock:
@@ -183,11 +184,11 @@ class Peacock:
         noInf = len(rankInfluencer)
         slcInfluencer = []
         if random.random() < epsilon:
-            slcInfluencer = random.sample(range(1, noInf-1),noInfluencer)
-            
+            slcInfIdx = random.sample(range(1, noInf-1),noInfluencer)
+            slcInfluencer = itemgetter(*slcInfIdx)(self.influencers.allInfluencers)
         else: 
             slcInfluencer = [a for a in dict(sorted(rankInfluencer.items(), key=operator.itemgetter(1))[:noInfluencer]).keys()]
         
-        print('test')
+        return slcInfluencer
                
            

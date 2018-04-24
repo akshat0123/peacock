@@ -17,7 +17,11 @@ def main():
     influencers = peacock.influencers.infGroup
     leastPopInfluencer = peacock.rank_influencer_tweets_by_similarity(influencers, 5, 1, gen_tweet_tokens)
     peacock.update_influencers_performance(influencers)
-    #peacock.update_influencers(influencers, 10, 0.1)
-
+    updatedInfluencer = peacock.update_influencers(influencers, 10, 0.01)
+    print('\nCurrent influencer list\n')
+    print(influencers)
+    print('\n\nUpdated influencer list by epsilon greedy\n')
+    print(updatedInfluencer)
+    
 if __name__ == '__main__':
     main()
