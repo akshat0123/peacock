@@ -173,7 +173,7 @@ class Peacock:
         print("\n===============================================================\n")
         print("The performance of influencer is updated based on the generated tweet\n")
         print(self.influencers.infPerformance)
-        
+
     
     def update_influencers(self, influencers, noInfluencer, epsilon):
         self.influencers.allInfluencers
