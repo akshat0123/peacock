@@ -25,10 +25,24 @@ class Peacock:
         self.influencer_models = None
         self.userTweetsStat = {}
         self.similarities = {}
+        self.influencer_tweets = {}
+
+    def load_all_tweets(self, count):
+        """ Loads and saves 'count' tweets for all possible influencers
+        """
+
+        for influencer in tqdm(self.influencers.allInfluencers, desc='Gathering Tweets'):
+            self.get_tweets(influencer, count)
+
+    
+    def get_saved_tweets(self, user):
+        """ Returns user tweets saved in the 'userTweetsStat' dictionary for the
+            given user
+        """
+        return [list(item.keys()) for item in self.userTweetsStat[user]][0]
 
 
-
-    def learn_models(self, count):
+    def learn_models(self):
         """ Takes in a count of tweets to learn from for each influencer and
             fills the complete language model and the influencer language models
             with the corresponding tweets
@@ -41,11 +55,12 @@ class Peacock:
 
         all_tweets = []
         for influencer in tqdm(influencers, desc='Learning Models'):
-            tweets = [tweet for tweet in self.get_tweets(influencer, count)[0]]
+            tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
             self.influencer_models[influencer].add_documents(tweets)
             all_tweets += tweets
 
         self.complete_model.add_documents(all_tweets)
+
 
     def get_tweets(self, user, count):
         """ Takes in a twitter user and a count and returns the number of tweets
@@ -74,12 +89,34 @@ class Peacock:
 
         self.api.update_status(tweet)
 
+
+    def calculate_similarities(self, gen_tweet):
+        """ Takes in a generated tweet and returns a dictionary of all possible
+            influencers mapped to the similarity values for each of their saved
+            tweets
+        """
+        gen_tweet_tokens = self.complete_model.generate_tokens(gen_tweet)
+
+        influencers = self.influencers.allInfluencers
+        similarities = { influencer: [] for influencer in influencers }
+        for influencer in tqdm(influencers, desc='Calculating Similarities:'):
+            tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
+            for tweet in tweets:
+                tweet_tokens = self.complete_model.generate_tokens(tweet)
+                sim = self.complete_model.calculate_similarity(gen_tweet_tokens, tweet_tokens)
+                similarities[influencer].append((tweet, sim))
+
+        similarities = { influencer: sorted(similarities[influencer], key=lambda x:x[1], reverse=True) for influencer in similarities }
+
+        return similarities
+
+
     def calculate_influencer_similarity(self,influencers, gnTweetTkn):
         """ calculate the similarity of each tweets of influencer with generated tweet
         """
         similarities = { influencer: [] for influencer in influencers}
         for influencer in tqdm(influencers, desc='Calculating Similarities:'):
-            tweets = [tweet for tweet in self.get_tweets(influencer, 10)[0]]
+            tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
             for tweet in tweets:
                 tweet_tokens = self.complete_model.generate_tokens(tweet)
                 sim = self.complete_model.calculate_similarity(gnTweetTkn, tweet_tokens)
@@ -118,22 +155,12 @@ class Peacock:
         """ Takes in a tweet and calculates popularity based on likes/retweets
             of that tweet
         """
-#        likes = []
-#        RTs = []
-#        for influencer in similarities:
-#            likes.append(self.get_tweets(influencer, 10)[1][similarities[influencer][0][0]]['like'])
-#            RTs.append(self.get_tweets(influencer, 10)[1][similarities[influencer][0][0]]['RT'])
-#        
-#        lngMdl = self.complete_model
-#        lngMdl.assign_like_RT_to_generatedTweet(likes,RTs)
-        
         twNoLike = tweetStat[tweet]['like']
         twNoRt = tweetStat[tweet]['RT']
         twNoFlwr = tweetStat[tweet]['follower']
         twPopularity = (twNoLike + 2*twNoRt)/twNoFlwr
         
         return twPopularity
-        
 
 
     def least_popular_influencers(self, influencerTopSim, count):
@@ -154,6 +181,7 @@ class Peacock:
         leastPopInfluencer = [a for a in dict(sorted(rankInfluencer.items(), key=operator.itemgetter(1), reverse=True)[:count]).keys()]
         
         return leastPopInfluencer
+
 
     def update_influencers_performance(self, influencers):
         """ Updates influencer performance
