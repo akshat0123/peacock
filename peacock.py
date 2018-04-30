@@ -8,7 +8,7 @@ import numpy as np
 class Peacock:
 
 
-    def __init__(self, influencers, credentials):
+    def __init__(self, influencers, credentials, similarity_parameter, popularity_parameter, epsilon):
         """ Initializes peacock agent, takes in initial list of influencers and
             twitter credentials dictionary
         """
@@ -25,7 +25,10 @@ class Peacock:
         self.influencer_models = None
         self.userTweetsStat = {}
         self.similarities = {}
-        self.influencer_tweets = {}
+        self.similarity_parameter = similarity_parameter
+        self.popularity_parameter = popularity_parameter
+        self.epsilon = epsilon
+
 
     def load_all_tweets(self, count):
         """ Loads and saves 'count' tweets for all possible influencers
@@ -93,7 +96,7 @@ class Peacock:
     def calculate_influencer_similarity(self, gnTweetTkn):
         """ calculate the similarity of each tweets of influencer with generated tweet
         """
-        influencers = self.influencers.allInfluencers
+        influencers = self.influencers.infGroup
         similarities = { influencer: [] for influencer in influencers}
         for influencer in tqdm(influencers, desc='Calculating Similarities:'):
             tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
@@ -105,17 +108,16 @@ class Peacock:
         
         similarities = { influencer: sorted(similarities[influencer], key=lambda x:x[1], reverse=True) for influencer in similarities }
         self.similarities = similarities
-        return similarities
 
         
-    def rank_influencer_tweets_by_similarity(self, influencers, count, infCnt, gen_tweet_tokens):
+    def rank_influencer_tweets_by_similarity(self, count, infCnt, gen_tweet_tokens):
         """ For each influencer get the top 'count' similar tweets
             Returns a dictionary with influencer name as key and top 'count'
             similar tweets as values
         """
-        self.calculate_influencer_similarity(influencers, gen_tweet_tokens)
+        self.calculate_influencer_similarity(gen_tweet_tokens)
         similarities = self.similarities
-        influencerTopSim = {inf: [] for inf in influencers}
+        influencerTopSim = { inf: [] for inf in self.influencers.allInfluencers }
         for influencer in similarities:
             twTopSmlrty = []
             cnt = 0
@@ -131,13 +133,13 @@ class Peacock:
         return leastPopInfluencer
         
 
-    def assign_popularity_to_tweet(self, tweetStat, tweet):
+    def assign_popularity_to_tweet(self, influencer, tweet):
         """ Takes in a tweet and calculates popularity based on likes/retweets
             of that tweet
         """
-        twNoLike = tweetStat[tweet]['like']
-        twNoRt = tweetStat[tweet]['RT']
-        twNoFlwr = tweetStat[tweet]['follower']
+        twNoLike = self.userTweetsStat[influencer][0][tweet]['like']
+        twNoRt = self.userTweetsStat[influencer][0][tweet]['RT']
+        twNoFlwr = self.userTweetsStat[influencer][0][tweet]['follower']
         twPopularity = (twNoLike + 2*twNoRt)/twNoFlwr
         
         return twPopularity
@@ -163,24 +165,14 @@ class Peacock:
         return leastPopInfluencer
 
 
-    def update_influencers_performance(self, influencers):
+    def update_influencers_performance(self):
         """ Updates influencer performance
         """
-        simParam = 2
-        popParam = 1
-        for influencer in influencers:
-            similarity = []
-            popularity = []
-            infTweetPop = self.userTweetsStat[influencer]
-            infTweet = infTweetPop[len(infTweetPop)-1]
-            for value in self.similarities[influencer]:
-                similarity.append(value[1])  
-                popularity.append(self.assign_popularity_to_tweet(infTweet,value[0]))
-                
-            self.influencers.infPerformance[influencer] = (simParam*np.mean(similarity) + popParam*np.mean(popularity))
-        print("\n===============================================================\n")
-        print("The performance of influencer is updated based on the generated tweet\n")
-        print(self.influencers.infPerformance)
+        for influencer in self.influencers.infGroup:
+
+            popularities = [self.assign_popularity_to_tweet(influencer, pair[0]) for pair in self.similarities[influencer]]
+            similarities = [pair[1] for pair in self.similarities[influencer]]
+            self.influencers.infPerformance[influencer] += (self.similarity_parameter*np.mean(similarities) + self.popularity_parameter*np.mean(popularities))
 
     
     def update_influencers(self, influencers, noInfluencer, epsilon):
@@ -199,4 +191,40 @@ class Peacock:
         
         return slcInfluencer
                
-           
+    
+    def update_influencers_again(self):
+        sorted_influencers = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infGroup]
+        sorted_influencers = sorted(sorted_influencers, key=lambda x: x[1], reverse=True)
+        worst_influencer = sorted_influencers[len(sorted_influencers)-1][0]
+
+        sorted_influencer_pool = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infPerformance]
+        sorted_influencer_pool = sorted(sorted_influencer_pool, key=lambda x:x[1], reverse=True)
+        best_possible_influencer = sorted_influencer_pool[0][0]
+        best_index = 0
+
+        # Remove worst influencer
+        worst_index = self.influencers.infGroup.index(worst_influencer)
+        self.influencers.infGroup.pop(worst_index)
+
+        if random.random() < self.epsilon:
+            new_influencer = self.influencers.allInfluencers[random.sample(range(0, len(self.influencers.allInfluencers)-1), 1)[0]]
+
+            if new_influencer in self.influencers.infGroup:
+                while new_influencer in self.influencers.infGroup:
+                    new_influencer = self.influencers.allInfluencers[random.sample(range(0, len(self.influencers.allInfluencers)-1), 1)[0]]
+
+        else:
+            new_influencer = best_possible_influencer
+
+
+            if new_influencer in self.influencers.infGroup:
+                while new_influencer in self.influencers.infGroup:
+
+                    sorted_influencer_pool = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infPerformance]
+                    sorted_influencer_pool = sorted(sorted_influencer_pool, key=lambda x:x[1], reverse=True)
+                    best_possible_influencer = sorted_influencer_pool[best_index][0]
+                    new_influencer = best_possible_influencer
+                    best_index += 1
+
+
+        self.influencers.infGroup.append(new_influencer)
