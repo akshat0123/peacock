@@ -90,30 +90,10 @@ class Peacock:
         self.api.update_status(tweet)
 
 
-    def calculate_similarities(self, gen_tweet):
-        """ Takes in a generated tweet and returns a dictionary of all possible
-            influencers mapped to the similarity values for each of their saved
-            tweets
-        """
-        gen_tweet_tokens = self.complete_model.generate_tokens(gen_tweet)
-
-        influencers = self.influencers.allInfluencers
-        similarities = { influencer: [] for influencer in influencers }
-        for influencer in tqdm(influencers, desc='Calculating Similarities:'):
-            tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
-            for tweet in tweets:
-                tweet_tokens = self.complete_model.generate_tokens(tweet)
-                sim = self.complete_model.calculate_similarity(gen_tweet_tokens, tweet_tokens)
-                similarities[influencer].append((tweet, sim))
-
-        similarities = { influencer: sorted(similarities[influencer], key=lambda x:x[1], reverse=True) for influencer in similarities }
-
-        return similarities
-
-
-    def calculate_influencer_similarity(self,influencers, gnTweetTkn):
+    def calculate_influencer_similarity(self, gnTweetTkn):
         """ calculate the similarity of each tweets of influencer with generated tweet
         """
+        influencers = self.influencers.allInfluencers
         similarities = { influencer: [] for influencer in influencers}
         for influencer in tqdm(influencers, desc='Calculating Similarities:'):
             tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
@@ -124,8 +104,8 @@ class Peacock:
 
         
         similarities = { influencer: sorted(similarities[influencer], key=lambda x:x[1], reverse=True) for influencer in similarities }
-        
         self.similarities = similarities
+        return similarities
 
         
     def rank_influencer_tweets_by_similarity(self, influencers, count, infCnt, gen_tweet_tokens):
