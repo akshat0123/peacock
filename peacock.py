@@ -28,6 +28,10 @@ class Peacock:
         self.similarity_parameter = similarity_parameter
         self.popularity_parameter = popularity_parameter
         self.epsilon = epsilon
+        self.reward = 1
+        self.rewardParam = 0.1
+        self.alpha = 0.1
+        self.gamma = 1
 
 
     def load_all_tweets(self, count):
@@ -168,29 +172,21 @@ class Peacock:
     def update_influencers_performance(self):
         """ Updates influencer performance
         """
+        
+        currentScore = np.sum([a for a in self.influencers.infPerformance.values()])
         for influencer in self.influencers.infGroup:
-
             popularities = [self.assign_popularity_to_tweet(influencer, pair[0]) for pair in self.similarities[influencer]]
             similarities = [pair[1] for pair in self.similarities[influencer]]
             self.influencers.infPerformance[influencer] += (self.similarity_parameter*np.mean(similarities) + self.popularity_parameter*np.mean(popularities))
-
-    
-    def update_influencers(self, influencers, noInfluencer, epsilon):
-        self.influencers.allInfluencers
-        infPerformance = self.influencers.infPerformance
-        tmp = {key: rank for rank, key in enumerate(sorted(set(infPerformance.values()), reverse=True), 1)}
-        rankInfluencer = {k: tmp[v] for k,v in infPerformance.items()}
+        newScore = np.sum([a for a in self.influencers.infPerformance.values()])
         
-        noInf = len(rankInfluencer)
-        slcInfluencer = []
-        if random.random() < epsilon:
-            slcInfIdx = random.sample(range(1, noInf-1),noInfluencer)
-            slcInfluencer = itemgetter(*slcInfIdx)(self.influencers.allInfluencers)
-        else: 
-            slcInfluencer = [a for a in dict(sorted(rankInfluencer.items(), key=operator.itemgetter(1))[:noInfluencer]).keys()]
+        difScore = newScore - currentScore
         
-        return slcInfluencer
-               
+        if diffScore > self.rewardParam:
+            self.reward = 1
+        else:
+            self.reward = -1
+        
     
     def update_influencers_again(self):
         sorted_influencers = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infGroup]
@@ -228,3 +224,6 @@ class Peacock:
 
 
         self.influencers.infGroup.append(new_influencer)
+        
+    
+   
