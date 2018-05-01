@@ -28,6 +28,7 @@ class Peacock:
         self.similarity_parameter = similarity_parameter
         self.popularity_parameter = popularity_parameter
         self.epsilon = epsilon
+        self.valueState = {influencer: 0 for influencer in self.influencers.allInfluencers}
         self.reward = 1
         self.rewardParam = 0.1
         self.alpha = 0.1
@@ -174,18 +175,32 @@ class Peacock:
         """
         
         currentScore = np.sum([a for a in self.influencers.infPerformance.values()])
+        # the value of current states
+        for influencer in self.influencers.infGroup:
+            self.valueState[influencer] = self.influencers.infPerformance[influencer]
+        
+        
+        
         for influencer in self.influencers.infGroup:
             popularities = [self.assign_popularity_to_tweet(influencer, pair[0]) for pair in self.similarities[influencer]]
             similarities = [pair[1] for pair in self.similarities[influencer]]
             self.influencers.infPerformance[influencer] += (self.similarity_parameter*np.mean(similarities) + self.popularity_parameter*np.mean(popularities))
+        
         newScore = np.sum([a for a in self.influencers.infPerformance.values()])
         
         difScore = newScore - currentScore
         
-        if diffScore > self.rewardParam:
+        if difScore > self.rewardParam:
             self.reward = 1
         else:
             self.reward = -1
+        
+        
+        # v(s) += alpha * (R + gamma*v(s') - v(s))
+        for influencer in self.influencers.infGroup:
+            self.valueState[influencer] += self.alpha * (self.reward + self.gamma*self.influencers.infPerformance[influencer] - self.valueState[influencer]) 
+        
+        
         
     
     def update_influencers_again(self):
