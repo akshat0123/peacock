@@ -1,9 +1,10 @@
 from language_model import LanguageModel
 from twitter_processing_utils import *
-from tqdm import tqdm
 import tweepy, random, operator
 from operator import itemgetter 
+from tqdm import tqdm
 import numpy as np
+
 
 class Peacock:
 
@@ -33,6 +34,7 @@ class Peacock:
         self.rewardParam = 0.1
         self.alpha = 0.1
         self.gamma = 1
+        self.curDif = 0
 
 
     def load_all_tweets(self, count):
@@ -62,7 +64,8 @@ class Peacock:
         self.influencer_models = { influencer: LanguageModel() for influencer in influencers }
 
         all_tweets = []
-        for influencer in tqdm(influencers, desc='Learning Models'):
+        # for influencer in tqdm(influencers, desc='Learning Models'):
+        for influencer in influencers:
             tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
             self.influencer_models[influencer].add_documents(tweets)
             all_tweets += tweets
@@ -103,7 +106,7 @@ class Peacock:
         """
         influencers = self.influencers.infGroup
         similarities = { influencer: [] for influencer in influencers}
-        for influencer in tqdm(influencers, desc='Calculating Similarities:'):
+        for influencer in influencers:
             tweets = [tweet for tweet in self.get_saved_tweets(influencer)]
             for tweet in tweets:
                 tweet_tokens = self.complete_model.generate_tokens(tweet)
@@ -179,31 +182,32 @@ class Peacock:
         for influencer in self.influencers.infGroup:
             self.valueState[influencer] = self.influencers.infPerformance[influencer]
         
-        
-        
         for influencer in self.influencers.infGroup:
             popularities = [self.assign_popularity_to_tweet(influencer, pair[0]) for pair in self.similarities[influencer]]
             similarities = [pair[1] for pair in self.similarities[influencer]]
             self.influencers.infPerformance[influencer] += (self.similarity_parameter*np.mean(similarities) + self.popularity_parameter*np.mean(popularities))
         
         newScore = np.sum([a for a in self.influencers.infPerformance.values()])
-        
         difScore = newScore - currentScore
         
-        if difScore > self.rewardParam:
-            self.reward = 1
+        # if difScore > self.rewardParam:
+        #     self.reward = 1
+        # else:
+        #     self.reward = -1
+
+        if difScore > self.curDif:
+            self.reward = 0
         else:
             self.reward = -1
-        
+
+        self.curDif = difScore
         
         # v(s) += alpha * (R + gamma*v(s') - v(s))
         for influencer in self.influencers.infGroup:
             self.valueState[influencer] += self.alpha * (self.reward + self.gamma*self.influencers.infPerformance[influencer] - self.valueState[influencer]) 
         
-        
-        
     
-    def update_influencers_again(self):
+    def update_influencers(self):
         sorted_influencers = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infGroup]
         sorted_influencers = sorted(sorted_influencers, key=lambda x: x[1], reverse=True)
         worst_influencer = sorted_influencers[len(sorted_influencers)-1][0]
@@ -219,15 +223,12 @@ class Peacock:
 
         if random.random() < self.epsilon:
             new_influencer = self.influencers.allInfluencers[random.sample(range(0, len(self.influencers.allInfluencers)-1), 1)[0]]
-
             if new_influencer in self.influencers.infGroup:
                 while new_influencer in self.influencers.infGroup:
                     new_influencer = self.influencers.allInfluencers[random.sample(range(0, len(self.influencers.allInfluencers)-1), 1)[0]]
 
         else:
             new_influencer = best_possible_influencer
-
-
             if new_influencer in self.influencers.infGroup:
                 while new_influencer in self.influencers.infGroup:
 
@@ -239,6 +240,48 @@ class Peacock:
 
 
         self.influencers.infGroup.append(new_influencer)
-        
-    
-   
+
+
+    def update_influencers_again(self):
+
+        # Replace influencer at random
+        if random.random() > self.epsilon:
+
+            # Remove influencer at random
+            random_influencer = self.influencers.infGroup[random.sample(range(0, len(self.influencers.infGroup)-1), 1)[0]]
+            random_index = self.influencers.infGroup.index(random_influencer)
+            self.influencers.infGroup.pop(random_index)
+
+            # Replace influencer at random
+            new_influencer = self.influencers.allInfluencers[random.sample(range(0, len(self.influencers.allInfluencers)-1), 1)[0]]
+            if new_influencer in self.influencers.infGroup:
+                while new_influencer in self.influencers.infGroup:
+                    new_influencer = self.influencers.allInfluencers[random.sample(range(0, len(self.influencers.allInfluencers)-1), 1)[0]]
+
+        # Replace worst influencer with best possible influencer
+        else:
+            # Remove worst influencer
+            sorted_influencers = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infGroup]
+            sorted_influencers = sorted(sorted_influencers, key=lambda x: x[1], reverse=True)
+            worst_influencer = sorted_influencers[len(sorted_influencers)-1][0]
+            worst_index = self.influencers.infGroup.index(worst_influencer)
+            self.influencers.infGroup.pop(worst_index)
+
+            # Find best possible influencer
+            sorted_influencer_pool = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infPerformance]
+            sorted_influencer_pool = sorted(sorted_influencer_pool, key=lambda x:x[1], reverse=True)
+            best_possible_influencer = sorted_influencer_pool[0][0]
+            best_index = 0
+
+            new_influencer = best_possible_influencer
+            if new_influencer in self.influencers.infGroup:
+                while new_influencer in self.influencers.infGroup:
+
+                    sorted_influencer_pool = [(influencer, self.influencers.infPerformance[influencer]) for influencer in self.influencers.infPerformance]
+                    sorted_influencer_pool = sorted(sorted_influencer_pool, key=lambda x:x[1], reverse=True)
+                    best_possible_influencer = sorted_influencer_pool[best_index][0]
+                    new_influencer = best_possible_influencer
+                    best_index += 1
+
+
+        self.influencers.infGroup.append(new_influencer)

@@ -7,8 +7,9 @@ class Influencers:
 
     def __init__(self):
         # self.allInfluencers = ["katyperry", "justinbieber", "BarackObama", "taylorswift13", "ladygaga", "TheEllenShow", "jtimberlake", "KimKardashian", "britneyspears", "ArianaGrande", "ddlovato", "selenagomez", "jimmyfallon", "BillGates", "JLo", "BrunoMars", "Oprah", "nytimes", "KingJames", "MileyCyrus", "SportsCenter", "KevinHart4real", "LilTunechi", "wizkhalifa", "Pink", "aliciakeys", "NASA", "ConanOBrien", "chrisbrown", "ActuallyNPH", "NBA", "danieltosh", "pitbull", "KendallJenner", "khloekardashian", "KylieJenner", "NFL", "kourtneykardash", "Eminem", "HillaryClinton", "NICKIMINAJ", "MariahCarey", "blakeshelton", "LeoDiCaprio", "aplusk", "ShawnMendes", "StephenAtHome", "JimCarrey", "ParisHilton", "SnoopDogg", "FoxNews", "KDTrey5", "kanyewest", "xtina", "RyanSeacrest", "camerondallas", "ZacEfron", "WSJ", "PlayStation", "tomhanks", "Diddy", "tyrabanks", "Beyonce", "SHAQ", "maroon5", "POTUS44", "BigSean", "SethMacFarlane", "funnyordie", "ashleytisdale", "TreySongz", "ABC", "kobebryant", "nickjonas", "ObamaWhiteHouse", "voguemagazine", "Zendaya", "iamwill", "Usher", "TheRock", "SarahKSilverman", "AP", "neiltyson", "kelly_clarkson", "washingtonpost", "StephenCurry30", "charliesheen", "johnlegend", "Ludacris", "mindykaling", "enews", "Starbucks", "jimmykimmel", "MarcAnthony", "DisneyPixar", "TheOnion", "JohnCena", "billmaher", "azizansari", "TEDTalks"]
-        self.allInfluencers = ["katyperry", "justinbieber", "BarackObama", "taylorswift13"]
-        self.infGroup = random.sample(self.allInfluencers, 2)
+        self.allInfluencers = ["katyperry", "justinbieber", "BarackObama", "taylorswift13", "ladygaga", "TheEllenShow", "jtimberlake", "KimKardashian", "britneyspears", "ArianaGrande", "ddlovato", "selenagomez", "jimmyfallon", "BillGates", "JLo", "BrunoMars", "Oprah", "nytimes", "KingJames", "MileyCyrus", "SportsCenter", "KevinHart4real", "LilTunechi", "wizkhalifa", "Pink", "aliciakeys", "NASA", "ConanOBrien", "chrisbrown", "ActuallyNPH", "NBA", "danieltosh", "pitbull", "KendallJenner", "khloekardashian", "KylieJenner", "NFL", "kourtneykardash", "Eminem", "HillaryClinton", "NICKIMINAJ", "MariahCarey", "blakeshelton", "LeoDiCaprio", "aplusk", "ShawnMendes", "StephenAtHome", "JimCarrey", "ParisHilton", "SnoopDogg", "FoxNews", "KDTrey5", "kanyewest", "xtina", "RyanSeacrest", "camerondallas", "ZacEfron", "WSJ", "PlayStation", "tomhanks", "Diddy", "tyrabanks", "Beyonce", "SHAQ", "maroon5", "POTUS44", "BigSean", "SethMacFarlane", "funnyordie", "ashleytisdale", "TreySongz", "ABC", "kobebryant", "nickjonas", "ObamaWhiteHouse", "voguemagazine", "Zendaya", "iamwill", "Usher", "TheRock" ]
+        # self.allInfluencers = ["katyperry", "justinbieber", "BarackObama", "taylorswift13", "ladygaga"]
+        self.infGroup = random.sample(self.allInfluencers, 5)
         self.discard = self.infGroup
         self.infAvail = list(filter(lambda x: x not in self.infGroup, self.allInfluencers))
         self.infPerformance = {influencer: 0 for influencer in self.allInfluencers}
@@ -24,3 +25,8 @@ class Influencers:
         newItem = random.sample(self.infAvail, 1)[0]
         self.infGroup.append(newItem)
         self.infAvail.remove(newItem)
+
+
+    def reset(self):
+        self.infGroup = random.sample(self.allInfluencers, 2)
+        self.infPerformance = {influencer: 0 for influencer in self.allInfluencers}
